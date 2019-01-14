@@ -1,0 +1,29 @@
+ {% extends "layout.html" %}
+
+ {% block content %}
+<main role="main" class="container">
+  <div class="row">
+    <div class="col-md-8">
+        <div class="drugclasses">
+            <h4 class="drugclass"> Drug Classes</h4>
+            {% for drugclass in drugclasses %}
+            <div>
+                <p>{{drugclass.name}}</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+      <div class="col-md-4">
+        <div class="content-section">
+            <h4>New Drugs</h4>
+            {% for newdrug in newdrugs %}
+            <div>
+                <p>{{newdrug.name}}</p>
+            </div>
+            {% endfor %}
+        </div>
+      </div>
+  </div>
+</main>
+
+ {% endblock content %}
