@@ -11,9 +11,13 @@ class User(Base):
     __tablename__ = 'user'
 
     id = Column(Integer, primary_key=True)
-    name = Column(String(250), nullable=False)
-    email = Column(String(250), nullable=False)
-    # picture = Column(String(250), nullable=True)
+    username = Column(String(20), unique=True, nullable=False)
+    email = Column(String(120), unique=True, nullable=False)
+    image_file = Column(String(20), nullable=False, default='default.jpg')
+    password = Column(String(60), nullable=False)
+
+    def __repr__(self):
+        return f"User('{self.username}', '{self.email}', '{self.image_file}')"
 
 
 class DrugClass(Base):
