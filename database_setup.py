@@ -1,13 +1,26 @@
 from sqlalchemy import Column, ForeignKey, Integer, String
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import relationship, sessionmaker
 from sqlalchemy import create_engine
+from flask import Flask
+from flask_login import LoginManager, UserMixin
 
+app = Flask(__name__)
+login_manager = LoginManager(app)
 
 Base = declarative_base()
+engine = create_engine('sqlite:///drugcatalog.db')
+Base.metadata.bind = engine
+DBSession = sessionmaker(bind=engine)
+session = DBSession()
 
 
-class User(Base):
+@login_manager.user_loader
+def load_user(user_id):
+    return session.query(User).get(int(user_id))
+
+
+class User(Base, UserMixin):
     __tablename__ = 'user'
 
     id = Column(Integer, primary_key=True)

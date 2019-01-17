@@ -3,8 +3,10 @@ import sys
 from flask import Flask, render_template, request, redirect, jsonify, url_for, flash
 from sqlalchemy import create_engine, asc
 from sqlalchemy.orm import sessionmaker
-from database_setup import Base, DrugClass, Drug, DrugInformation, NewDrugs, NewDrugInformation
+from database_setup import Base, DrugClass, Drug, DrugInformation, NewDrugs, NewDrugInformation, User
 from forms import RegistrationForm, LoginForm
+from flask_bcrypt import Bcrypt
+from flask_login import LoginManager, login_user, logout_user, current_user, user_logged_out, login_required
 from oauth2client.client import flow_from_clientsecrets
 from oauth2client.client import FlowExchangeError
 import httplib2
@@ -23,7 +25,7 @@ engine = create_engine('sqlite:///drugcatalog.db')
 Base.metadata.bind = engine
 DBSession = sessionmaker(bind=engine)
 session = DBSession()
-
+bcrypt = Bcrypt(app)
 
 @app.route("/")
 def home():
@@ -36,8 +38,13 @@ def home():
 def register():
     form = RegistrationForm()
     if form.validate_on_submit():
-        flash(f'Account created for {form.username.data}!', 'success')
-        return redirect(url_for('home'))
+        password = form.password.data
+        hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
+        user = User(username=form.username.data, email=form.email.data, password=hashed_password)
+        session.add(user)
+        session.commit()
+        flash(f'Your account has been created! You are able to log in.', 'success')
+        return redirect(url_for('login'))
     return render_template('register.html', title='Register', form=form)
 
 
@@ -45,11 +52,12 @@ def register():
 def login():
     form = LoginForm()
     if form.validate_on_submit():
-        if form.email.data == 'admin@drugcatalogapp.com' and form.password.data == 'password':
-            flash('You have been logged in!', 'success')
+        user = session.query(User).filter_by(email=form.email.data).first()
+        if user and bcrypt.check_password_hash(user.password, form.password.data):
+            login_user(user, remember=form.remember.data)
             return redirect(url_for('home'))
         else:
-            flash('Login Unsuccessful. Please check username and password', 'danger')
+            flash('Login Unsuccessful. Please check email and password', 'danger')
     return render_template('login.html', title='Login', form=form)
 
 
