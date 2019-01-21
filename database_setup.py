@@ -6,18 +6,24 @@ from flask import Flask
 from flask_login import LoginManager, UserMixin
 
 app = Flask(__name__)
-login_manager = LoginManager(app)
-
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = 'login'
+login_manager.login_message_category = 'info'
 Base = declarative_base()
-engine = create_engine('sqlite:///drugcatalog.db')
+engine = create_engine('sqlite:///drugcatalog.db', connect_args={'check_same_thread': False})
 Base.metadata.bind = engine
 DBSession = sessionmaker(bind=engine)
 session = DBSession()
 
 
-@login_manager.user_loader
-def load_user(user_id):
-    return session.query(User).get(int(user_id))
+# @login_manager.user_loader
+# def load_user(user_id):
+#     user = session.query(User).filter_by(id=user_id).first()
+#     if user is not None:
+#         return user
+#     else:
+#         return None
 
 
 class User(Base, UserMixin):

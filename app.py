@@ -21,11 +21,21 @@ app = Flask(__name__)
 
 app.config['SECRET_KEY'] = ''.join(random.choice(string.ascii_uppercase + string.digits) for x in range(32))
 
-engine = create_engine('sqlite:///drugcatalog.db')
+engine = create_engine('sqlite:///drugcatalog.db', connect_args={'check_same_thread': False})
 Base.metadata.bind = engine
 DBSession = sessionmaker(bind=engine)
 session = DBSession()
 bcrypt = Bcrypt(app)
+
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = "login"
+
+
+@login_manager.user_loader
+def load_user(id):
+    return session.query(User).get(int(id))
+
 
 @app.route("/")
 def home():
