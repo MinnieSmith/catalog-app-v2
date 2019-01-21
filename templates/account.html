@@ -1,9 +1,13 @@
- {% extends "layout.html" %}
-
+{% extends "layout.html" %}
 
  {% block content %}
 <main role="main" class="container">
   <div class="row">
+      <div class="col-md-8">
+        <div class="account-info">
+             <h6>Welcome {{ current_user.username }}!</h6>
+        </div>
+      </div>
     <div class="col-md-8">
         <div class="drug-classes">
             <h4> Drug Classes</h4>

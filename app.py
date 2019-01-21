@@ -30,6 +30,7 @@ bcrypt = Bcrypt(app)
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = "login"
+login_manager.login_message_category = 'info'
 
 
 @login_manager.user_loader
@@ -46,6 +47,8 @@ def home():
 
 @app.route("/register", methods=['GET', 'POST'])
 def register():
+    if current_user.is_authenticated:
+        return redirect(url_for('home'))
     form = RegistrationForm()
     if form.validate_on_submit():
         password = form.password.data
@@ -60,15 +63,32 @@ def register():
 
 @app.route("/login", methods=['GET', 'POST'])
 def login():
+    if current_user.is_authenticated:
+        return redirect(url_for('home'))
     form = LoginForm()
     if form.validate_on_submit():
         user = session.query(User).filter_by(email=form.email.data).first()
         if user and bcrypt.check_password_hash(user.password, form.password.data):
             login_user(user, remember=form.remember.data)
-            return redirect(url_for('home'))
+            next_page = request.args.get('next')
+            return redirect(next_page) if next_page else redirect(url_for('home'))
         else:
             flash('Login Unsuccessful. Please check email and password', 'danger')
     return render_template('login.html', title='Login', form=form)
+
+
+@app.route("/logout", methods=['GET', 'POST'])
+def logout():
+    logout_user()
+    return redirect(url_for('home'))
+
+
+@app.route("/account", methods=['GET', 'POST'])
+@login_required
+def account():
+    drug_classes = session.query(DrugClass).order_by(asc(DrugClass.name))
+    new_drugs = session.query(NewDrugs).order_by(asc(NewDrugs.name))
+    return render_template('account.html', drugclasses=drug_classes, newdrugs=new_drugs)
 
 
 if __name__ == '__main__':
