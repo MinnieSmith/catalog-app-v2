@@ -32,6 +32,14 @@ h1, h2, h3, h4, h5, h6 {
   margin-bottom: 20px;
 }
 
+.content-section {
+  background-color: #D4EFDF;
+  padding: 10px 20px;
+  border: 1px solid #dddddd;
+  border-radius: 3px;
+  margin-bottom: 20px;
+}
+
 .drug-classes {
   background-color: #F9E79F;
   padding: 10px 20px;
@@ -40,7 +48,7 @@ h1, h2, h3, h4, h5, h6 {
   margin-bottom: 20px;
 }
 
-.content-section {
+.sidebar-section {
   background: #FADBD8;
   padding: 10px 20px;
   border: 1px solid #dddddd;
@@ -93,12 +101,14 @@ a.article-title:hover {
 }
 
 .account-img {
-  height: 125px;
-  width: 125px;
-  margin-right: 20px;
-  margin-bottom: 16px;
+  height: 100px;
+  width: 100px;
 }
 
 .account-heading {
-  font-size: 2.5rem;
+  font-size: 1.5rem;
 }
+
+.text-secondary {
+  font-size: 0.8rem;
+  }
