@@ -1,15 +1,20 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from database_setup import Base, User, DrugClass, Drug, DrugInformation, NewDrugs, NewDrugInformation
+from flask_bcrypt import Bcrypt
+from flask import Flask
 
-engine = create_engine('sqlite:///drugcatalog.db')
+app = Flask(__name__)
+bcrypt = Bcrypt(app)
+engine = create_engine('sqlite:///drugcatalog.db', connect_args={'check_same_thread': False})
 Base.metadata.bind = engine
-
 DBSession = sessionmaker(bind=engine)
 session = DBSession()
 
+hashed_pw1 = bcrypt.generate_password_hash("happiness").decode('utf-8')
+
 # Create a dummy user
-User1 = User(id=1, username="Caspar Smith", email="caspar.melchi@gmail.com", password="happinessis")
+User1 = User(id=1, username="Caspar Smith", email="caspar.melchi@gmail.com", password=hashed_pw1)
 session.add(User1)
 session.commit()
 
