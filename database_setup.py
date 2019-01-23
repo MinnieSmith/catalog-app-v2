@@ -96,6 +96,7 @@ class DrugInformation(Base):
             'id': self.id,
         }
 
+
 class NewDrugs(Base):
     __tablename__ = 'new_drugs'
 
