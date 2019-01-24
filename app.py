@@ -7,8 +7,7 @@ from database_setup import Base, DrugClass, Drug, DrugInformation, NewDrugs, New
 from forms import RegistrationForm, LoginForm, UpdateAccountForm
 from flask_bcrypt import Bcrypt
 from flask_login import LoginManager, login_user, logout_user, current_user, user_logged_out, login_required
-from PIL import Image
-from format_picture import resize_image, centered_crop_PIL
+from save_picture import save_profile_picture
 from oauth2client.client import flow_from_clientsecrets
 from oauth2client.client import FlowExchangeError
 import httplib2
@@ -98,15 +97,7 @@ def account():
 
 
 def save_picture(form_picture):
-    random_hex = secrets.token_hex(8)
-    f_name, f_ext = os.path.splitext(form_picture.filename)
-    picture_fn = random_hex + f_ext
-    picture_path = os.path.join(app.root_path, 'static/profile_pics', picture_fn)
-    i = Image.open(form_picture)
-    i = resize_image(i, 500)
-    i = centered_crop_PIL(i, 300, 300)
-    i.save(picture_path)
-    return picture_fn
+    return save_profile_picture(form_picture)
 
 
 @app.route("/edit_account", methods=['GET', 'POST'])
