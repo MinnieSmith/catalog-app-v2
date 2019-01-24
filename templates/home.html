@@ -8,11 +8,21 @@
             <h4> Drug Classes</h4>
             {% for drugclass in drugclasses %}
             <div>
-                <p>{{drugclass.name}}</p>
+                <p>
+                    <button class="btn-sm btn-warning" type="button" data-toggle="collapse" data-target="#collapseExample" aria-expanded="false" aria-controls="collapseExample">
+                        {{drugclass.name}}
+                    </button>
+                </p>
+            </div>
+            <div class="collapse" id="collapseExample">
+              <div class="card card-body">
+                  {% for drug in drugs %}
+                {{drug.name}}
+              </div>
             </div>
             {% endfor %}
+            {% endfor %}
         </div>
-    </div>
       <div class="col-md-4">
         <div class="sidebar-section">
             <h4>New Drugs</h4>

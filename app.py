@@ -4,7 +4,7 @@ from flask import Flask, render_template, request, redirect, jsonify, url_for, f
 from sqlalchemy import create_engine, asc
 from sqlalchemy.orm import sessionmaker
 from database_setup import Base, DrugClass, Drug, DrugInformation, NewDrugs, NewDrugInformation, User
-from forms import RegistrationForm, LoginForm, UpdateAccountForm
+from forms import RegistrationForm, LoginForm, UpdateAccountForm, PostForm
 from flask_bcrypt import Bcrypt
 from flask_login import LoginManager, login_user, logout_user, current_user, user_logged_out, login_required
 from save_picture import save_profile_picture
@@ -46,7 +46,8 @@ def load_user(id):
 def home():
     drug_classes = session.query(DrugClass).order_by(asc(DrugClass.name))
     new_drugs = session.query(NewDrugs).order_by(asc(NewDrugs.name))
-    return render_template('home.html', drugclasses=drug_classes, newdrugs=new_drugs)
+    drugs = session.query(Drug).filter_by(drug_class_id=DrugClass.id)
+    return render_template('home.html', drugclasses=drug_classes, newdrugs=new_drugs, drugs=drugs)
 
 
 @app.route("/register", methods=['GET', 'POST'])
@@ -74,6 +75,7 @@ def login():
         user = session.query(User).filter_by(email=form.email.data).first()
         if user and bcrypt.check_password_hash(user.password, form.password.data):
             login_user(user, remember=form.remember.data)
+            flash('Welcome!', 'success')
             return redirect(url_for('account'))
         else:
             flash('Login Unsuccessful. Please check email and password', 'danger')
@@ -118,6 +120,24 @@ def edit_account():
         form.email.data = current_user.email
     image_file = url_for('static', filename='profile_pics/' + current_user.image_file)
     return render_template('edit_account.html', image_file=image_file, form=form)
+
+
+@app.route("/drug/add", methods=['GET', 'POST'])
+@login_required
+def add_drug():
+    form = PostForm()
+    if form.validate_on_submit():
+        drug_class = DrugClass(name=form.drug_class.data, user_id=current_user.id)
+        drug = Drug(name=form.name.data, drug_class_id=drug_class.id, user_id=current_user.id)
+        drug_info = DrugInformation(name=form.name.data, information=form.drug_info.data,
+                                    drug_class_id=drug_class.id, user_id=current_user.id)
+        session.add(drug_class)
+        session.add(drug)
+        session.add(drug_info)
+        session.commit()
+        flash('Drug has been added!', 'success')
+        return redirect(url_for('account'))
+    return render_template('add_drug.html', form=form)
 
 
 if __name__ == '__main__':

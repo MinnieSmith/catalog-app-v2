@@ -34,7 +34,6 @@ def image_transpose_exif(i):
         return functools.reduce(type(i).transpose, seq, i)
 
 
-
 def centered_crop_np(i, new_height, new_width):
     width = np.size(i, 1)
     height = np.size(i, 0)
