@@ -1,6 +1,6 @@
 {% extends "layout.html" %}
- {% block content %}
 
+{% block content %}
 <main role="main" class="container">
   <div class="row">
     <div class="col-md-8">
@@ -9,31 +9,28 @@
             {% for drugclass in drugclasses %}
             <div>
                 <p>
-                    <button class="btn-sm btn-warning" type="button" data-toggle="collapse" data-target="#collapseExample" aria-expanded="false" aria-controls="collapseExample">
-                        {{drugclass.name}}
-                    </button>
+                    <a class="btn-sm btn-warning" data-toggle="collapse" href="#" role="button" aria-expanded="false" aria-controls="collapseExample">
+                       {{drugclass.name}}
+                </a>
                 </p>
             </div>
-            <div class="collapse" id="collapseExample">
-              <div class="card card-body">
-                  {% for drug in drugs %}
-                {{drug.name}}
-              </div>
-            </div>
-            {% endfor %}
             {% endfor %}
         </div>
+    </div>
       <div class="col-md-4">
         <div class="sidebar-section">
             <h4>New Drugs</h4>
             {% for newdrug in newdrugs %}
             <div>
-                <p>{{newdrug.name}}</p>
+                <p>
+                    <a class="btn-sm btn-warning" data-toggle="collapse" href="#" role="button" aria-expanded="false" aria-controls="collapseExample">
+                       {{newdrug.name}}
+                    </a>
+                </p>
             </div>
             {% endfor %}
         </div>
       </div>
   </div>
 </main>
-
- {% endblock content %}
+{% endblock content %}

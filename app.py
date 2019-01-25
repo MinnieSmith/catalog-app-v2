@@ -3,7 +3,7 @@ import sys
 from flask import Flask, render_template, request, redirect, jsonify, url_for, flash
 from sqlalchemy import create_engine, asc
 from sqlalchemy.orm import sessionmaker
-from database_setup import Base, DrugClass, Drug, DrugInformation, NewDrugs, NewDrugInformation, User
+from database_setup import Base, DrugClass, Drug, NewDrugs, User
 from forms import RegistrationForm, LoginForm, UpdateAccountForm, PostForm
 from flask_bcrypt import Bcrypt
 from flask_login import LoginManager, login_user, logout_user, current_user, user_logged_out, login_required
@@ -46,8 +46,16 @@ def load_user(id):
 def home():
     drug_classes = session.query(DrugClass).order_by(asc(DrugClass.name))
     new_drugs = session.query(NewDrugs).order_by(asc(NewDrugs.name))
-    drugs = session.query(Drug).filter_by(drug_class_id=DrugClass.id)
-    return render_template('home.html', drugclasses=drug_classes, newdrugs=new_drugs, drugs=drugs)
+    return render_template('home.html', drugclasses=drug_classes, newdrugs=new_drugs)
+
+
+@app.route("/<drug_class_name>")
+@login_required
+def show_drugs(drug_class_name):
+    drugclasses = session.query(DrugClass).filter_by(name=drug_class_name)
+    drugs = session.query(Drug).filter_by(drug_class_name=drug_class_name)
+    image_file = url_for('static', filename='profile_pics/' + current_user.image_file)
+    return render_template('drugs.html', image_file=image_file, drug_class_name=drugclasses.name, drugs=drugs)
 
 
 @app.route("/register", methods=['GET', 'POST'])

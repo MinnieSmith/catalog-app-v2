@@ -1,16 +1,8 @@
 {% extends "layout.html" %}
 {% block content %}
-<div class="content-section">
-      <div class="media">
-        <img class="rounded-circle account-img align-self-center mr-3" src="{{ image_file }}">
-        <div class="media-body">
-          <h6 class="account-heading">{{ current_user.username }}</h6>
-            <p class="text-secondary">{{ current_user.email }}</p>
-                <a href="{{ url_for('edit_account') }}" class="btn btn-outline-warning btn-sm" role="button">Edit</a>
-        </div>
-      </div>
-  </div>
+{% include "user_profile.html" %}
 {% include "flash.html" %}
+
 <main role="main" class="container">
   <div class="row">
     <div class="col-md-8">
@@ -18,7 +10,11 @@
             <h4> Drug Classes</h4>
             {% for drugclass in drugclasses %}
             <div>
-                <p>{{drugclass.name}}</p>
+                <p>
+                    <a class="btn-sm btn-warning" href="{{ url_for('show_drugs', drug_class_name = drugclass.name) }}" role="button">
+                       {{drugclass.name}}
+                    </a>
+                </p>
             </div>
             {% endfor %}
         </div>
@@ -28,12 +24,15 @@
             <h4>New Drugs</h4>
             {% for newdrug in newdrugs %}
             <div>
-                <p>{{newdrug.name}}</p>
+                <p>
+                    <a class="btn-sm btn-danger" href="{{ url_for('show_drugs') }}" role="button">
+                       {{newdrug.name}}
+                    </a>
+                </p>
             </div>
             {% endfor %}
         </div>
       </div>
   </div>
 </main>
-
- {% endblock content %}
+{% endblock content %}

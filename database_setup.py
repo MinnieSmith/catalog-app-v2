@@ -18,15 +18,6 @@ DBSession = sessionmaker(bind=engine)
 session = DBSession()
 
 
-# @login_manager.user_loader
-# def load_user(user_id):
-#     user = session.query(User).filter_by(id=user_id).first()
-#     if user is not None:
-#         return user
-#     else:
-#         return None
-
-
 class User(Base, UserMixin):
     __tablename__ = 'user'
 
@@ -43,8 +34,7 @@ class User(Base, UserMixin):
 class DrugClass(Base):
     __tablename__ = 'drug_class'
 
-    id = Column(Integer, primary_key=True)
-    name = Column(String(250), nullable=False)
+    name = Column(String(250), primary_key=True, nullable=False)
     user_id = Column(Integer, ForeignKey('user.id'))
     user = relationship(User)
 
@@ -56,15 +46,16 @@ class DrugClass(Base):
             'id': self.id,
         }
 
+
 class Drug(Base):
     __tablename__ = 'drug'
 
-    name = Column(String(80), nullable=False)
-    id = Column(Integer, primary_key=True)
-    drug_class_id = Column(Integer, ForeignKey('drug_class.id'))
+    name = Column(String(80), nullable=False, primary_key=True)
+    drug_class_name = Column(Integer, ForeignKey('drug_class.name'))
     drug_class = relationship(DrugClass)
     user_id = Column(Integer, ForeignKey('user.id'))
     user = relationship(User)
+    information = Column(String, nullable=True)
 
     @property
     def serialize(self):
@@ -75,53 +66,12 @@ class Drug(Base):
             'id': self.id
         }
 
-class DrugInformation(Base):
-    __tablename__ = 'drug_info'
-
-    name = Column(String(80), nullable=False, primary_key=True)
-    information = Column(String, nullable=True)
-    drug_class_id = Column(Integer, ForeignKey('drug_class.id'))
-    drug_class = relationship(DrugClass)
-    drug_id = Column(Integer, ForeignKey('drug.id'))
-    drug = relationship(Drug)
-    user_id = Column(Integer, ForeignKey('user.id'))
-    user = relationship(User)
-
-    @property
-    def serialize(self):
-        """Return object data in easily serializeable format"""
-        return {
-            'name': self.name,
-            'information': self.information,
-            'id': self.id,
-        }
-
 
 class NewDrugs(Base):
     __tablename__ = 'new_drugs'
 
-    name = Column(String(80), nullable=False)
-    information = Column(String, nullable=True)
-    id = Column(Integer, primary_key=True)
-    user_id = Column(Integer, ForeignKey('user.id'))
-    user = relationship(User)
-
-    @property
-    def serialize(self):
-        """Return object data in easily serializeable format"""
-        return {
-            'name': self.name,
-            'information': self.information,
-            'id': self.id,
-        }
-
-class NewDrugInformation(Base):
-    __tablename__ = 'new_drug_info'
-
     name = Column(String(80), nullable=False, primary_key=True)
     information = Column(String, nullable=True)
-    new_drugs_id = Column(Integer, ForeignKey('new_drugs.id'))
-    new_drug = relationship(NewDrugs)
     user_id = Column(Integer, ForeignKey('user.id'))
     user = relationship(User)
 
@@ -135,7 +85,5 @@ class NewDrugInformation(Base):
         }
 
 
-engine = create_engine('sqlite:///drugcatalog.db')
-
-
+engine = create_engine('sqlite:///drugcatalog.db', connect_args={'check_same_thread': False})
 Base.metadata.create_all(engine)
