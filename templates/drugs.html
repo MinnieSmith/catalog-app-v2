@@ -1,9 +1,36 @@
 {% extends "layout.html" %}
 {% block content %}
-{% include "user_profile.html" %}
 {% include "flash.html" %}
 
-drugs
-and drug info
+<div class="content-section">
+    <div class="media">
+        <img class="rounded-circle article-img align-self-right mr-3" src="{{ image_file }}">
+            <div class="media-body">
+                <h1 class="drugclass-heading">{{ drug_class}}
+                <a href="{{ url_for('edit_drug_class', drug_class = drug_class) }}" class="btn btn-outline-warning btn-sm" role="button">Edit</a>
+                </h1>
+            </div>
+    </div>
+</div>
+
+
+{% for drug in drugs %}
+<main role="main" class="container">
+  <div class="row">
+    <div class="col-md-8">
+        <div class="drugs">
+            <h5>{{drug.name}}</h5>
+            <div>
+                <p>
+                {{drug.information}}
+                </p>
+            </div>
+            <a href="{{ url_for('edit_drug', drug = drug) }}" class="btn btn-outline-warning btn-sm" role="button">Edit</a>
+            <br>
+        </div>
+    </div>
+  </div>
+</main>
+{% endfor %}
 
 {% endblock content %}
