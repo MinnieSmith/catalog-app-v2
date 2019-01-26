@@ -6,3 +6,5 @@
 *.pyc
 
 *.db
+
+static/profile_pics/
