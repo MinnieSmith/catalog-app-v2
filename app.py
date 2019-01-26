@@ -4,7 +4,7 @@ from flask import Flask, render_template, request, redirect, jsonify, url_for, f
 from sqlalchemy import create_engine, asc
 from sqlalchemy.orm import sessionmaker
 from database_setup import Base, DrugClass, Drug, NewDrugs, User
-from forms import RegistrationForm, LoginForm, UpdateAccountForm, PostForm
+from forms import RegistrationForm, LoginForm, UpdateAccountForm, PostForm, AddDrugForm
 from flask_bcrypt import Bcrypt
 from flask_login import LoginManager, login_user, logout_user, current_user, user_logged_out, login_required
 from save_picture import save_profile_picture
@@ -49,13 +49,35 @@ def home():
     return render_template('home.html', drugclasses=drug_classes, newdrugs=new_drugs)
 
 
-@app.route("/<drug_class_name>")
+@app.route("/<drug_class>")
 @login_required
-def show_drugs(drug_class_name):
-    drugclasses = session.query(DrugClass).filter_by(name=drug_class_name)
-    drugs = session.query(Drug).filter_by(drug_class_name=drug_class_name)
+def show_drugs(drug_class):
+    drugclasses = session.query(DrugClass).filter_by(name=drug_class)
+    drugs = session.query(Drug).filter_by(drug_class_name=drug_class)
     image_file = url_for('static', filename='profile_pics/' + current_user.image_file)
-    return render_template('drugs.html', image_file=image_file, drug_class_name=drugclasses.name, drugs=drugs)
+    return render_template('drugs.html', image_file=image_file, drug_class=drug_class, drugs=drugs, drugclasses=drugclasses)
+
+
+@app.route("/<drug_class>/edit")
+@login_required
+def edit_drug_class(drug_class):
+    drugclasses = session.query(DrugClass).filter_by(name=drug_class)
+    #TO DO
+    return url_for('show_drugs', drug_class=drug_class)
+
+
+@app.route("/<drug>/edit")
+@login_required
+def edit_drug(drug):
+    #TO DO
+    pass
+
+
+@app.route("/<drug>/delete")
+@login_required
+def delete_drug(drug):
+    #TO DO
+    pass
 
 
 @app.route("/register", methods=['GET', 'POST'])
@@ -133,15 +155,12 @@ def edit_account():
 @app.route("/drug/add", methods=['GET', 'POST'])
 @login_required
 def add_drug():
-    form = PostForm()
+    form = AddDrugForm()
     if form.validate_on_submit():
         drug_class = DrugClass(name=form.drug_class.data, user_id=current_user.id)
-        drug = Drug(name=form.name.data, drug_class_id=drug_class.id, user_id=current_user.id)
-        drug_info = DrugInformation(name=form.name.data, information=form.drug_info.data,
-                                    drug_class_id=drug_class.id, user_id=current_user.id)
+        drug = Drug(name=form.name.data, drug_class_name=form.drug_class.data, user_id=current_user.id)
         session.add(drug_class)
         session.add(drug)
-        session.add(drug_info)
         session.commit()
         flash('Drug has been added!', 'success')
         return redirect(url_for('account'))

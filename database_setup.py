@@ -51,7 +51,7 @@ class Drug(Base):
     __tablename__ = 'drug'
 
     name = Column(String(80), nullable=False, primary_key=True)
-    drug_class_name = Column(Integer, ForeignKey('drug_class.name'))
+    drug_class_name = Column(String(80), ForeignKey('drug_class.name'))
     drug_class = relationship(DrugClass)
     user_id = Column(Integer, ForeignKey('user.id'))
     user = relationship(User)

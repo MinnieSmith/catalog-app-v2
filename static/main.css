@@ -49,6 +49,14 @@ h1, h2, h3, h4, h5, h6 {
   margin-bottom: 20px;
 }
 
+.drugs {
+  background-color: #EAF2F8;
+  padding: 10px 20px;
+  border: 1px solid #dddddd;
+  border-radius: 3px;
+  margin-bottom: 20px;
+}
+
 .sidebar-section {
   background: #FADBD8;
   padding: 10px 20px;
@@ -79,8 +87,8 @@ a.article-title:hover {
 }
 
 .article-img {
-  height: 65px;
-  width: 65px;
+  height: 55px;
+  width: 55px;
   margin-right: 16px;
 }
 
@@ -108,6 +116,10 @@ a.article-title:hover {
 
 .account-heading {
   font-size: 1.5rem;
+}
+
+.drugclass-heading {
+  font-size: 2.5rem;
 }
 
 .text-secondary {
