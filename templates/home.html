@@ -1,5 +1,4 @@
 {% extends "layout.html" %}
-
 {% block content %}
 <main role="main" class="container">
   <div class="row">
@@ -9,9 +8,9 @@
             {% for drugclass in drugclasses %}
             <div>
                 <p>
-                    <a class="btn-sm btn-warning" data-toggle="collapse" href="#" role="button" aria-expanded="false" aria-controls="collapseExample">
+                    <a class="btn-sm btn-warning" href="{{ url_for('show_drugs', drug_class = drugclass.name) }}" role="button">
                        {{drugclass.name}}
-                </a>
+                    </a>
                 </p>
             </div>
             {% endfor %}
@@ -23,7 +22,7 @@
             {% for newdrug in newdrugs %}
             <div>
                 <p>
-                    <a class="btn-sm btn-warning" data-toggle="collapse" href="#" role="button" aria-expanded="false" aria-controls="collapseExample">
+                    <a class="btn-sm btn-warning" href="{{ url_for('new_drugs')}}" role="button">
                        {{newdrug.name}}
                     </a>
                 </p>

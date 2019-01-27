@@ -7,7 +7,7 @@
             <form method="POST" action="">
             {{ form.hidden_tag() }}
             <fieldset class="form-group">
-                <legend class="border-bottom mb-4">Add Drug</legend>
+                <legend class="border-bottom mb-4">Add New Drug</legend>
                 <div class="form-group">
                     {{ form.name.label(class="form-control-label-sm") }}
                     {% if form.name.errors %}
@@ -46,6 +46,10 @@
                     {% else %}
                         {{ form.drug_info(class="form-control form-control-sm") }}
                     {% endif %}
+                </div>
+                <div class="form-check">
+                    {{ form.recent_drug(class="form-check-input") }}
+                    {{ form.recent_drug.label(class="form-check-label") }}
                 </div>
             </fieldset>
             <div class="form-group">

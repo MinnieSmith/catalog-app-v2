@@ -25,7 +25,7 @@
             {% for newdrug in newdrugs %}
             <div>
                 <p>
-                    <a class="btn-sm btn-danger" href="#" role="button">
+                    <a class="btn-sm btn-warning" href="{{ url_for('new_drugs')}}" role="button">
                        {{newdrug.name}}
                     </a>
                 </p>

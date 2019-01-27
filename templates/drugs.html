@@ -1,19 +1,15 @@
 {% extends "layout.html" %}
 {% block content %}
-{% include "flash.html" %}
-
 <div class="content-section">
     <div class="media">
         <img class="rounded-circle article-img align-self-right mr-3" src="{{ image_file }}">
             <div class="media-body">
                 <h1 class="drugclass-heading">{{ drug_class}}
-                <a href="{{ url_for('edit_drug_class', drug_class = drug_class) }}" class="btn btn-outline-warning btn-sm" role="button">Edit</a>
                 </h1>
             </div>
     </div>
 </div>
-
-
+{% include "flash.html" %}
 {% for drug in drugs %}
 <main role="main" class="container">
   <div class="row">
@@ -25,12 +21,35 @@
                 {{drug.information}}
                 </p>
             </div>
-            <a href="{{ url_for('edit_drug', drug = drug) }}" class="btn btn-outline-warning btn-sm" role="button">Edit</a>
+            <a href="{{ url_for('edit_drug', drug = drug.name, drug_class = drug_class) }}" class="btn btn-outline-warning btn-sm" role="button">Edit</a>
+            <button type="button" class="btn btn-outline-danger btn-sm" data-toggle="modal" data-target="#deleteModalCenter">
+                Delete
+            </button>
             <br>
         </div>
     </div>
   </div>
+<!-- Modal -->
+<div class="modal fade" id="deleteModalCenter" tabindex="-1" role="dialog" aria-labelledby="deleteModalCenterTitle" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="deleteModalCenterTitle">Delete Drug</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+            <p>Are you sure you want to delete drug?</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-success btn-sm" data-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-danger btn-sm">Delete</button>
+      </div>
+    </div>
+  </div>
+</div>
 </main>
-{% endfor %}
 
+{% endfor %}
 {% endblock content %}
