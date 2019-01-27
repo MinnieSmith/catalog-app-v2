@@ -204,13 +204,17 @@ def add_drug():
                                 user_id=current_user.id, information=form.drug_info.data)
             session.add(new_drug)
             session.commit()
-            flash('Drug has been added!', 'success')
+            flash('Drug has been added to New Drugs list!', 'success')
             return redirect(url_for('account'))
         # TO DO: find out why it's not adding drug if its not a new drug!
         elif form.recent_drug.data is False:
-            new_drug = Drug(name=form.name.data, drug_class_name=form.drug_class.data,
+            drug = Drug(name=form.name.data, drug_class_name=form.drug_class.data,
                             user_id=current_user.id, information=form.drug_info.data)
-            session.add(new_drug)
+
+            session.add(drug)
+            session.commit()
+            drug = DrugClass(name=form.drug_class.data, user_id=current_user.id)
+            session.add(drug)
             session.commit()
             flash('Drug has been added!', 'success')
             return redirect(url_for('account'))
