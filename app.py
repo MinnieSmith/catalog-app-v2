@@ -61,9 +61,9 @@ def show_drugs(drug_class):
 
 @app.route("/Newdrugs")
 def new_drugs():
-    new_drugs = session.query(NewDrugs).order_by(asc(NewDrugs.name))
+    drugs = session.query(NewDrugs).order_by(asc(NewDrugs.name))
     image_file = url_for('static', filename='profile_pics/' + current_user.image_file)
-    return render_template('new_drugs.html', new_drugs=new_drugs, image_file=image_file)
+    return render_template('new_drugs.html', drugs=drugs, image_file=image_file)
 
 
 @app.route("/<drug_class>/<drug>/edit", methods=['GET', 'POST'])
@@ -71,55 +71,67 @@ def new_drugs():
 def edit_drug(drug_class, drug):
     drug_to_edit = session.query(Drug).filter_by(name=drug).one()
     form = EditDrugForm()
-    if form.validate_on_submit():
-        drug_to_edit.name = form.name.data
-        drug_to_edit.drug_class_name = form.drug_class.data
-        drug_to_edit.information = form.drug_info.data
-        session.commit()
-        flash('Drug has been updated!', 'success')
-        return redirect(url_for('show_drugs', drug_class=drug_class))
+
+    if form.submit.data:
+        if form.validate_on_submit():
+            drug_to_edit.name = form.name.data
+            drug_to_edit.drug_class_name = form.drug_class.data
+            drug_to_edit.information = form.drug_info.data
+            session.commit()
+            flash('Drug has been updated!', 'success')
+            return redirect(url_for('show_drugs', drug_class=drug_class))
     elif request.method == 'GET':
         form.name.data = drug_to_edit.name
         form.drug_class.data = drug_to_edit.drug_class_name
         form.drug_info.data = drug_to_edit.information
-    return render_template('edit_drug.html', form=form, drug=drug)
-    # form = EditDrugForm()
-    # if form.validate_on_submit():
-    #     edited_drug = session.query(Drug).filter_by(name=drug).one()
-    #     edited_drug.name = form.name.data
-    #     edited_drug.drug_class = form.drug_class.data
-    #     edited_drug.information = form.drug_info.data
-    #     session.commit()
-    #     flash('Drug has been updated!', 'success')
-    #     return redirect(url_for('show_drugs', drug_class=drug_class))
-    # else:
-    #     return render_template('edit_drug.html', form=form, drug=drug)
+    return render_template('edit_drug.html', form=form, drug=drug, drug_class=drug_class)
 
 
-@app.route("/<drug_class>/<drug>/delete", methods=['POST'])
+@app.route("/<drug_class>/<drug>/edit/delete", methods=['GET', 'POST'])
 @login_required
 def delete_drug(drug_class, drug):
-    drug_to_delete = session.query(Drug).filter_by(name=drug).one()
+    drug_to_delete = session.query(Drug).filter_by(name=drug).first()
     session.delete(drug_to_delete)
     session.commit()
+    drug_class_to_delete = session.query(Drug).filter_by(drug_class_name=drug_class).first()
+    if drug_class_to_delete:
+        flash('Drug has been deleted!', 'success')
+        return redirect(url_for('show_drugs', drug_class=drug_class))
+    else:
+        drug_class_to_delete = session.query(DrugClass).filter_by(name=drug_class).one()
+        session.delete(drug_class_to_delete)
+        session.commit()
+        flash('Drug has been deleted!', 'success')
+        return redirect(url_for('account'))
+
+
+@app.route("/Newdrugs/<drug>/edit", methods=['GET', 'POST'])
+@login_required
+def edit_new_drug(drug):
+    new_drug_to_edit = session.query(NewDrugs).filter_by(name=drug).one()
+    form = EditDrugForm()
+    if form.validate_on_submit():
+        new_drug_to_edit.name = form.name.data
+        new_drug_to_edit.drug_class = form.drug_class.data
+        new_drug_to_edit.information = form.drug_info.data
+        session.commit()
+        flash('Drug has been updated!', 'success')
+        return redirect(url_for('new_drugs'))
+    elif request.method == 'GET':
+        form.name.data = new_drug_to_edit.name
+        form.drug_class.data = new_drug_to_edit.drug_class
+        form.drug_info.data = new_drug_to_edit.information
+    return render_template('edit_new_drug.html', form=form, drug=drug)
+
+
+@app.route("/Newdrug/<drug>edit/delete", methods=['GET', 'POST'])
+@login_required
+def delete_new_drug(drug):
+    new_drug_to_delete = session.query(NewDrugs).filter_by(name=drug).first()
+    session.delete(new_drug_to_delete)
+    session.commit()
     flash('Drug has been deleted!', 'success')
-    return redirect(url_for('show_drugs', drug_class=drug_class))
-
-
-
-
-@app.route("/<new_drug>/edit")
-@login_required
-def edit_new_drug(new_drug):
-    #TO DO
-    pass
-
-
-@app.route("/<new_drug>/delete")
-@login_required
-def delete_new_drug(new_drug):
-    #TO DO
-    pass
+    return redirect(url_for('new_drugs'))
 
 
 @app.route("/register", methods=['GET', 'POST'])
@@ -147,7 +159,7 @@ def login():
         user = session.query(User).filter_by(email=form.email.data).first()
         if user and bcrypt.check_password_hash(user.password, form.password.data):
             login_user(user, remember=form.remember.data)
-            flash('Welcome!', 'success')
+            flash('Welcome %s!' % user.username, 'success')
             return redirect(url_for('account'))
         else:
             flash('Login Unsuccessful. Please check email and password', 'danger')
@@ -213,11 +225,17 @@ def add_drug():
 
             session.add(drug)
             session.commit()
-            drug = DrugClass(name=form.drug_class.data, user_id=current_user.id)
-            session.add(drug)
-            session.commit()
-            flash('Drug has been added!', 'success')
-            return redirect(url_for('account'))
+            drug_class_exists = session.query(DrugClass).filter_by(name=form.drug_class.data).first()
+            if drug_class_exists:
+                flash('Drug has been added!', 'success')
+                return redirect(url_for('account'))
+            else:
+                drug = DrugClass(name=form.drug_class.data, user_id=current_user.id)
+                session.add(drug)
+                session.commit()
+                flash('Drug has been added!', 'success')
+                return redirect(url_for('account'))
+        return redirect(url_for('account'))
     return render_template('add_drug.html', form=form)
 
 

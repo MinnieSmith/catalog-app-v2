@@ -81,5 +81,7 @@ class EditDrugForm(FlaskForm):
     name = StringField('Drug Name', validators=[DataRequired()])
     drug_class = StringField('Drug Class', validators=[DataRequired()])
     drug_info = TextAreaField('Drug Information', validators=[DataRequired()])
-    submit = SubmitField('Apply')
+    submit = SubmitField('Apply Change')
+    delete = SubmitField('Delete')
+
 
