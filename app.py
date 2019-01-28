@@ -1,6 +1,7 @@
 import sys
 
 from flask import Flask, render_template, request, redirect, jsonify, url_for, flash, abort
+from flask import session as login_session
 from sqlalchemy import create_engine, asc
 from sqlalchemy.orm import sessionmaker
 from database_setup import Base, DrugClass, Drug, NewDrugs, User
@@ -8,6 +9,7 @@ from forms import RegistrationForm, LoginForm, UpdateAccountForm, AddDrugForm, E
 from flask_bcrypt import Bcrypt
 from flask_login import LoginManager, login_user, logout_user, current_user, user_logged_out, login_required
 from save_picture import save_profile_picture
+from g_connect import gconnect
 from oauth2client.client import flow_from_clientsecrets
 from oauth2client.client import FlowExchangeError
 import httplib2
@@ -17,7 +19,8 @@ import string
 
 
 app = Flask(__name__)
-
+CLIENT_ID = json.loads(
+    open('client_secrets.json', 'r').read())['web']['client_id']
 app.config['SECRET_KEY'] = ''.join(random.choice(string.ascii_uppercase + string.digits) for x in range(32))
 
 engine = create_engine('sqlite:///drugcatalog.db', connect_args={'check_same_thread': False})
@@ -132,6 +135,9 @@ def delete_new_drug(drug):
 
 @app.route("/register", methods=['GET', 'POST'])
 def register():
+    state = ''.join(random.choice(string.ascii_uppercase + string.digits)
+                    for x in range(32))
+    login_session['state'] = state
     if current_user.is_authenticated:
         return redirect(url_for('home'))
     form = RegistrationForm()
@@ -143,7 +149,7 @@ def register():
         session.commit()
         flash(f'Your account has been created! You are able to log in.', 'success')
         return redirect(url_for('login'))
-    return render_template('register.html', title='Register', form=form)
+    return render_template('register.html', title='Register', form=form, state=state)
 
 
 @app.route("/login", methods=['GET', 'POST'])
@@ -161,6 +167,12 @@ def login():
         else:
             flash('Login Unsuccessful. Please check email and password', 'danger')
     return render_template('login.html', title='Login', form=form)
+
+
+@app.route('/gconnect', methods=['POST'])
+def app_gconnect():
+    gconnect()
+    return redirect(url_for('account'))
 
 
 @app.route("/logout", methods=['GET', 'POST'])
