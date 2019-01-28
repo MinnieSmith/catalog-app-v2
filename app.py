@@ -14,12 +14,7 @@ import httplib2
 import json
 import random
 import string
-import secrets
-import os
-import numpy as np
-from flask import make_response
-from flask import session as login_session
-import requests
+
 
 app = Flask(__name__)
 
@@ -60,6 +55,7 @@ def show_drugs(drug_class):
 
 
 @app.route("/Newdrugs")
+@login_required
 def new_drugs():
     drugs = session.query(NewDrugs).order_by(asc(NewDrugs.name))
     image_file = url_for('static', filename='profile_pics/' + current_user.image_file)
@@ -159,8 +155,9 @@ def login():
         user = session.query(User).filter_by(email=form.email.data).first()
         if user and bcrypt.check_password_hash(user.password, form.password.data):
             login_user(user, remember=form.remember.data)
+            next_page = request.args.get('next')
             flash('Welcome %s!' % user.username, 'success')
-            return redirect(url_for('account'))
+            return redirect(next_page) if next_page else redirect(url_for('account'))
         else:
             flash('Login Unsuccessful. Please check email and password', 'danger')
     return render_template('login.html', title='Login', form=form)
