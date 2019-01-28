@@ -4,7 +4,7 @@ from sqlalchemy import create_engine, asc
 from sqlalchemy.orm import sessionmaker
 from wtforms import StringField, PasswordField, SubmitField, BooleanField, TextAreaField, IntegerField
 from wtforms.validators import DataRequired, Length, Email, EqualTo, ValidationError
-from database_setup import User, Base, DrugClass
+from database_setup import User, Base, DrugClass, Drug
 from flask_login import current_user
 
 engine = create_engine('sqlite:///drugcatalog.db', connect_args={'check_same_thread': False})
@@ -67,10 +67,21 @@ class AddDrugForm(FlaskForm):
     name = StringField('Drug Name', validators=[DataRequired()])
     drug_class = StringField('Drug Class', validators=[DataRequired()])
     drug_info = TextAreaField('Drug Information', validators=[DataRequired()])
+    recent_drug = BooleanField('Recently Released Drug', default=True, false_values=None)
     submit = SubmitField('Add')
 
+    # TO DO: Find out why validator not working!
+    def validate_name(self, name):
+        drug = session.query(Drug).filter_by(name=name.data).first()
+        if drug:
+            raise ValidationError('This drug has already been added.')
 
-    def validate_email(self, email):
-        user = session.query(User).filter_by(email=email.data).first()
-        if user:
-            raise ValidationError('That email is taken. Please choose a different one.')
+
+class EditDrugForm(FlaskForm):
+    name = StringField('Drug Name', validators=[DataRequired()])
+    drug_class = StringField('Drug Class', validators=[DataRequired()])
+    drug_info = TextAreaField('Drug Information', validators=[DataRequired()])
+    submit = SubmitField('Apply Change')
+    delete = SubmitField('Delete')
+
+

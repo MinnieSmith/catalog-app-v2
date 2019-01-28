@@ -70,8 +70,9 @@ class Drug(Base):
 class NewDrugs(Base):
     __tablename__ = 'new_drugs'
 
-    name = Column(String(80), nullable=False, primary_key=True)
-    information = Column(String, nullable=True)
+    name = Column(String(80), nullable=False, primary_key=True, unique=True)
+    drug_class = Column(String, nullable=False)
+    information = Column(String, nullable=False)
     user_id = Column(Integer, ForeignKey('user.id'))
     user = relationship(User)
 

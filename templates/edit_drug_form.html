@@ -1,0 +1,60 @@
+<div class="row">
+<div class="col-md-8">
+    <div class="Edit Drug">
+        <form method="POST" action="">
+        {{ form.hidden_tag() }}
+        <fieldset class="form-group">
+            <legend class="border-bottom mb-4">Edit {{drug}}</legend>
+            <div class="form-group">
+                {{ form.name.label(class="form-control-label-sm") }}
+                {{drug.name}}
+                {% if form.name.errors %}
+                    {{ form.name(class="form-control form-control-sm is-invalid") }}
+                    <div class="invalid-feedback">
+                        {% for error in form.name.errors %}
+                            <span>{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    {{ form.name(class="form-control form-control-sm") }}
+                {% endif %}
+            </div>
+            <div class="form-group">
+                {{ form.drug_class.label(class="form-control-label-sm") }}
+                {{drug.drug_class_name}}
+                {% if form.drug_class.errors %}
+                    {{ form.drug_class(class="form-control form-control-sm is-invalid") }}
+                    <div class="invalid-feedback">
+                        {% for error in form.drug_class.errors %}
+                            <span>{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    {{ form.drug_class(class="form-control form-control-sm") }}
+                {% endif %}
+            </div>
+            <div class="form-group">
+                {{ form.drug_info.label(class="form-control-label-sm") }}
+                {{ drug.information }}
+                {% if form.drug_info.errors %}
+                    {{ form.drug_info(class="form-control form-control-lg is-invalid") }}
+                    <div class="invalid-feedback">
+                        {% for error in form.drug_info.errors %}
+                            <span>{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    {{ form.drug_info(class="form-control form-control-sm") }}
+                {% endif %}
+            </div>
+        </fieldset>
+        <div class="form-group">
+            {{ form.submit(class="btn-sm btn-outline-success") }}
+            <button type="button" class="btn btn-outline-danger btn-sm" data-toggle="modal" data-target="#deleteModalCenter">
+                Delete
+            </button>
+        </div>
+        </form>
+</div>
+</div>
+</div>

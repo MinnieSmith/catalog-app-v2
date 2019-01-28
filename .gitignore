@@ -6,5 +6,11 @@
 *.pyc
 
 *.db
+<<<<<<< HEAD
 
 static/profile_pics/cf5a180b88187aee\.jpg
+||||||| create drug html and working on forms and validation methods
+=======
+
+static/profile_pics/
+>>>>>>> master

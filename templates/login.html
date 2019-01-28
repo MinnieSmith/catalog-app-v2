@@ -50,12 +50,49 @@
     </div>
     </div>
     <div class="container">
-            <div class=col-md-8">
-                <small class="text-muted">
-                    Need To Create An Account? <a href="{{ url_for('register') }}" class="btn btn-link btn-sm" role="button">Register</a>
-                </small>
+        <div class=col-md-8">
+            <div id="signinButton">
+                <span class="g-signin"
+                data-scope="openid email"
+                data-clientid="538195736623-n1rglhdjfim8gnf32q0a9csg3jojhivs.apps.googleusercontent.com"
+                data-redirecturi="postmessage"
+                data-accesstype="offline"
+                data-cookiepolicy="single_host_origin"
+                data-callback="signInCallback"
+                data-approvalprompt="force">
+                </span>
             </div>
+            <small class="text-muted">
+                Need To Create An Account? <a href="{{ url_for('register') }}" class="btn btn-link btn-sm" role="button">Register</a>
+            </small>
         </div>
+    </div>
   </div>
+     <div id="result"></div>
+         <script>
+            function signInCallback(authResult) {
+            if (authResult['code']) {
+            $('#signinButton').attr('style', 'display: none');
+            $.ajax({
+              type: 'POST',
+              url: '/gconnect?state={{state}}',
+              processData: false,
+              data: authResult['code'],
+              contentType: 'application/octet-stream; charset=utf-8',
+              success: function(result) {
+                if (result) {
+                    $('#result').html('Login Successful!</br>'+ result + '</br>Redirecting...')
+                    setTimeout(function() {
+                        window.location.href = "/";
+                 }, 1000);
+              } else if (authResult['error']) {
+            console.log('There was an error: ' + authResult['error']);
+            } else {
+                $('#result').html('Failed to make a server-side call. Check your configuration and console.');
+                 }
+              }
+            });
+            }}
+    </script>
  </main>
 {% endblock content %}
