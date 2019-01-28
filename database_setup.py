@@ -4,6 +4,7 @@ from sqlalchemy.orm import relationship, sessionmaker
 from sqlalchemy import create_engine
 from flask import Flask
 from flask_login import LoginManager, UserMixin
+from flask_dance.consumer.backend.sqla import OAuthConsumerMixin, SQLAlchemyBackend
 
 
 app = Flask(__name__)
@@ -27,8 +28,10 @@ class User(Base, UserMixin):
     image_file = Column(String(20), nullable=False, default='default.jpg')
     password = Column(String(60), nullable=False)
 
-    def __repr__(self):
-        return f"User('{self.username}', '{self.email}', '{self.image_file}')"
+
+class OAuth(Base, OAuthConsumerMixin):
+    user_id = Column(Integer, ForeignKey('user.id'))
+    user = relationship(User)
 
 
 class DrugClass(Base):

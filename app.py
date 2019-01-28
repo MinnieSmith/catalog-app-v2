@@ -2,32 +2,38 @@ import sys
 
 from flask import Flask, render_template, request, redirect, jsonify, url_for, flash, abort
 from flask import session as login_session
+from flask_dance.contrib.github import make_github_blueprint, github
+from flask_dance.consumer.backend.sqla import OAuthConsumerMixin, SQLAlchemyBackend
+from flask_dance.consumer import oauth_authorized
+
 from sqlalchemy import create_engine, asc
 from sqlalchemy.orm import sessionmaker
-from database_setup import Base, DrugClass, Drug, NewDrugs, User
+from database_setup import Base, DrugClass, Drug, NewDrugs, User, OAuth
 from forms import RegistrationForm, LoginForm, UpdateAccountForm, AddDrugForm, EditDrugForm
 from flask_bcrypt import Bcrypt
 from flask_login import LoginManager, login_user, logout_user, current_user, user_logged_out, login_required
 from save_picture import save_profile_picture
 from g_connect import gconnect
-from oauth2client.client import flow_from_clientsecrets
-from oauth2client.client import FlowExchangeError
-import httplib2
 import json
 import random
 import string
 
-
 app = Flask(__name__)
-CLIENT_ID = json.loads(
-    open('client_secrets.json', 'r').read())['web']['client_id']
-app.config['SECRET_KEY'] = ''.join(random.choice(string.ascii_uppercase + string.digits) for x in range(32))
-
 engine = create_engine('sqlite:///drugcatalog.db', connect_args={'check_same_thread': False})
 Base.metadata.bind = engine
 DBSession = sessionmaker(bind=engine)
 session = DBSession()
 bcrypt = Bcrypt(app)
+
+
+CLIENT_ID = json.loads(
+    open('client_secrets.json', 'r').read())['web']['client_id']
+app.config['SECRET_KEY'] = ''.join(random.choice(string.ascii_uppercase + string.digits) for x in range(32))
+
+github_blueprint = make_github_blueprint(client_id='0968ab5eedcc61e5f69d', client_secret='ee47d11ee5de23d887e8181f7c95b2023760ac7d')
+app.register_blueprint(github_blueprint, url_prefix='/login')
+github_blueprint.backend = SQLAlchemyBackend(OAuth, session, user=current_user)
+
 
 login_manager = LoginManager()
 login_manager.init_app(app)
@@ -173,6 +179,29 @@ def login():
 def app_gconnect():
     gconnect()
     return redirect(url_for('account'))
+
+
+@app.route('/github')
+def github_login():
+    if not github.authorized:
+        return redirect(url_for('github.login'))
+
+    account_info = github.get("user")
+
+    if account_info.ok:
+        account_info_json = account_info.json()
+        username = account_info_json['login']
+        email = account_info_json['email']
+        user = session.query(User).filter_by(username=username)
+        if user is None:
+            newuser = User(username=username, email=email)
+            session.add(newuser)
+            session.commit()
+
+        login_user(newuser)
+        flash('Welcome %s!' % user.username, 'success')
+        return redirect(url_for('account'))
+    return redirect(url_for('login'))
 
 
 @app.route("/logout", methods=['GET', 'POST'])
