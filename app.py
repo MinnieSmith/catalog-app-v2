@@ -169,31 +169,31 @@ def register():
 @app.route("/login", methods=['GET', 'POST'])
 def login():
     form = LoginForm()
-    if not google.authorized:
-        return redirect(url_for("google.login"))
-    resp = google.get("/oauth2/v2/userinfo")
-    email = resp.json()['email']
-    assert resp.ok, resp.text
-    if resp.ok:
-        email = resp.json()["email"]
-        user = session.query(User).filter_by(email=email).first()
-        if user is None:
-            googleuser = User(username=email, email=email)
-            session.add(googleuser)
-            session.commit()
-            print("FIRST PRINT DEBUG")
-            login_user(googleuser, remember=form.remember.data)
-            flash('Welcome %s!' % googleuser.username, 'success')
-            print("SECOND PRINT DEBUG")
-            return redirect(url_for('account'))
-    elif form.validate_on_submit():
+    # if not google.authorized:
+    #     return redirect(url_for("google.login"))
+    # resp = google.get("/oauth2/v2/userinfo")
+    # email = resp.json()['email']
+    # assert resp.ok, resp.text
+    # if resp.ok:
+    #     email = resp.json()["email"]
+    #     user = session.query(User).filter_by(email=email).first()
+    #     if user is None:
+    #         googleuser = User(username=email, email=email)
+    #         session.add(googleuser)
+    #         session.commit()
+    #         print("FIRST PRINT DEBUG")
+    #         login_user(googleuser, remember=form.remember.data)
+    #         flash('Welcome %s!' % googleuser.username, 'success')
+    #         print("SECOND PRINT DEBUG")
+    #         return redirect(url_for('account'))
+    if form.validate_on_submit():
         user = session.query(User).filter_by(email=form.email.data).first()
         if user and bcrypt.check_password_hash(user.password, form.password.data):
             login_user(user, remember=form.remember.data)
             next_page = request.args.get('next')
             flash('Welcome %s!' % user.username, 'success')
             print("THIRD PRINT DEBUG")
-            return redirect(next_page) if next_page else redirect(url_for('account', image_file=image_file))
+            return redirect(next_page) if next_page else redirect(url_for('account'))
         else:
             flash('Login Unsuccessful. Please check email and password', 'danger')
             print("FOURTH PRINT DEBUG")

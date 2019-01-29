@@ -13,7 +13,7 @@ app.config['SECRET_KEY'] = ''.join(random.choice(string.ascii_uppercase + string
 blueprint = make_google_blueprint(
     client_id="538195736623-n1rglhdjfim8gnf32q0a9csg3jojhivs.apps.googleusercontent.com",
     client_secret="KC-Mk5cWr7Pl8yLikK5Bnyjn",
-    redirect_to="/account",
+    redirect_to="account",
     scope=[
         "https://www.googleapis.com/auth/plus.me",
         "https://www.googleapis.com/auth/userinfo.email"
@@ -22,15 +22,24 @@ blueprint = make_google_blueprint(
 app.register_blueprint(blueprint, url_prefix="/login")
 
 
+@app.route("/", methods=['GET', 'POST'])
+def index():
+    return render_template('test.html')
 
-@app.route("/")
+
+@app.route("/login",  methods=['GET', 'POST'])
 def gconnect():
     if not google.authorized:
         return redirect(url_for("google.login"))
     resp = google.get("/oauth2/v2/userinfo")
-    email = resp.json()['email']
     assert resp.ok, resp.text
-    flash('Welcome %s!' %email, 'success')
+    return "You are {email} on Google".format(email=resp.json()["email"])
+
+
+@app.route("/account",  methods=['GET', 'POST'])
+def account():
+    return render_template('test2.html')
+
 
 
 if __name__ == '__main__':
