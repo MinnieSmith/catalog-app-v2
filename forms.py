@@ -35,11 +35,11 @@ class RegistrationForm(FlaskForm):
 
 
 class LoginForm(FlaskForm):
-    email = StringField('Email',
-                        validators=[DataRequired(), Email()])
-    password = PasswordField('Password', validators=[DataRequired()])
+    email = StringField('Email')
+    password = PasswordField('Password')
     remember = BooleanField('Remember Me')
     submit = SubmitField('Login')
+    google = SubmitField('Google Signin')
 
 
 class UpdateAccountForm(FlaskForm):

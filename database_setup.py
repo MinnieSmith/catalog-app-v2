@@ -25,8 +25,8 @@ class User(Base, UserMixin):
     id = Column(Integer, primary_key=True)
     username = Column(String(20), unique=True, nullable=False)
     email = Column(String(120), unique=True, nullable=False)
-    image_file = Column(String(20), nullable=False, default='default.jpg')
-    password = Column(String(60), nullable=False)
+    image_file = Column(String(20), nullable=True, default='default.jpg')
+    password = Column(String(60), nullable=True)
 
 
 class OAuth(Base, OAuthConsumerMixin):

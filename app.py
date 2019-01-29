@@ -5,6 +5,8 @@ from flask import session as login_session
 from flask_dance.contrib.github import make_github_blueprint, github
 from flask_dance.consumer.backend.sqla import OAuthConsumerMixin, SQLAlchemyBackend
 from flask_dance.consumer import oauth_authorized
+from flask_dance.contrib.google import make_google_blueprint, google
+from g_connect import gconnect
 
 from sqlalchemy import create_engine, asc
 from sqlalchemy.orm import sessionmaker
@@ -13,7 +15,6 @@ from forms import RegistrationForm, LoginForm, UpdateAccountForm, AddDrugForm, E
 from flask_bcrypt import Bcrypt
 from flask_login import LoginManager, login_user, logout_user, current_user, user_logged_out, login_required
 from save_picture import save_profile_picture
-from g_connect import gconnect
 import json
 import random
 import string
@@ -30,9 +31,16 @@ CLIENT_ID = json.loads(
     open('client_secrets.json', 'r').read())['web']['client_id']
 app.config['SECRET_KEY'] = ''.join(random.choice(string.ascii_uppercase + string.digits) for x in range(32))
 
-github_blueprint = make_github_blueprint(client_id='0968ab5eedcc61e5f69d', client_secret='ee47d11ee5de23d887e8181f7c95b2023760ac7d')
-app.register_blueprint(github_blueprint, url_prefix='/login')
-github_blueprint.backend = SQLAlchemyBackend(OAuth, session, user=current_user)
+blueprint = make_google_blueprint(
+    client_id="538195736623-n1rglhdjfim8gnf32q0a9csg3jojhivs.apps.googleusercontent.com",
+    client_secret="KC-Mk5cWr7Pl8yLikK5Bnyjn",
+    redirect_to="account",
+    scope=[
+        "https://www.googleapis.com/auth/plus.me",
+        "https://www.googleapis.com/auth/userinfo.email",
+    ]
+)
+app.register_blueprint(blueprint, url_prefix="/login")
 
 
 login_manager = LoginManager()
@@ -160,48 +168,36 @@ def register():
 
 @app.route("/login", methods=['GET', 'POST'])
 def login():
-    if current_user.is_authenticated:
-        return redirect(url_for('home'))
     form = LoginForm()
-    if form.validate_on_submit():
+    if not google.authorized:
+        return redirect(url_for("google.login"))
+    resp = google.get("/oauth2/v2/userinfo")
+    email = resp.json()['email']
+    assert resp.ok, resp.text
+    if resp.ok:
+        email = resp.json()["email"]
+        user = session.query(User).filter_by(email=email).first()
+        if user is None:
+            googleuser = User(username=email, email=email)
+            session.add(googleuser)
+            session.commit()
+            print("FIRST PRINT DEBUG")
+            login_user(googleuser, remember=form.remember.data)
+            flash('Welcome %s!' % googleuser.username, 'success')
+            print("SECOND PRINT DEBUG")
+            return redirect(url_for('account'))
+    elif form.validate_on_submit():
         user = session.query(User).filter_by(email=form.email.data).first()
         if user and bcrypt.check_password_hash(user.password, form.password.data):
             login_user(user, remember=form.remember.data)
             next_page = request.args.get('next')
             flash('Welcome %s!' % user.username, 'success')
-            return redirect(next_page) if next_page else redirect(url_for('account'))
+            print("THIRD PRINT DEBUG")
+            return redirect(next_page) if next_page else redirect(url_for('account', image_file=image_file))
         else:
             flash('Login Unsuccessful. Please check email and password', 'danger')
+            print("FOURTH PRINT DEBUG")
     return render_template('login.html', title='Login', form=form)
-
-
-@app.route('/gconnect', methods=['POST'])
-def app_gconnect():
-    gconnect()
-    return redirect(url_for('account'))
-
-
-@app.route('/github')
-def github_login():
-    if not github.authorized:
-        return redirect(url_for('github.login'))
-
-    account_info = github.get("user")
-
-    if account_info.ok:
-        account_info_json = account_info.json()
-        username = account_info_json['login']
-        email = account_info_json['email']
-        user = session.query(User).filter_by(username=username)
-        if user is None:
-            newuser = User(username=username, email=email)
-            session.add(newuser)
-            session.commit()
-
-        login_user(newuser)
-        flash('Welcome %s!' % user.username, 'success')
-        return redirect(url_for('account'))
-    return redirect(url_for('login'))
 
 
 @app.route("/logout", methods=['GET', 'POST'])
@@ -211,7 +207,7 @@ def logout():
 
 
 @app.route("/account", methods=['GET', 'POST'])
-@login_required
+# @login_required
 def account():
     image_file = url_for('static', filename='profile_pics/' + current_user.image_file)
     drug_classes = session.query(DrugClass).order_by(asc(DrugClass.name))

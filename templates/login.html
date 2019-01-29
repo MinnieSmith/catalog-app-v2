@@ -42,83 +42,21 @@
             </fieldset>
             <div class="form-group">
                 {{ form.submit(class="btn-sm btn-outline-success") }}
+                {{ form.google(class="btn-sm btn-outline-primary") }}
             </div>
                 <small class="text-muted">
                     <a href="#">Forgot Password</a>
                 </small>
-        </form>
+            </form>
     </div>
     </div>
     <div class="container">
         <div class=col-md-8">
-            <div id="signinButton">
-                <span class="g-signin"
-                data-scope="openid email"
-                data-clientid="538195736623-n1rglhdjfim8gnf32q0a9csg3jojhivs.apps.googleusercontent.com"
-                data-redirecturi="postmessage"
-                data-accesstype="offline"
-                data-cookiepolicy="single_host_origin"
-                data-callback="signInCallback"
-                data-approvalprompt="force">
-                </span>
-                <a id="github-button" class="btn btn-social btn-github">
-                    <i class="fab fa-github"></i> Sign in with GitHub
-                </a>
-            </div>
             <small class="text-muted">
                 Need To Create An Account? <a href="{{ url_for('register') }}" class="btn btn-link btn-sm" role="button">Register</a>
             </small>
         </div>
     </div>
   </div>
-     <div id="result"></div>
-         <script>
-            function signInCallback(authResult) {
-            if (authResult['code']) {
-            $('#signinButton').attr('style', 'display: none');
-            $.ajax({
-              type: 'POST',
-              url: '/gconnect?state={{state}}',
-              processData: false,
-              data: authResult['code'],
-              contentType: 'application/octet-stream; charset=utf-8',
-              success: function(result) {
-                if (result) {
-                    $('#result').html('Login Successful!</br>'+ result + '</br>Redirecting...')
-                    setTimeout(function() {
-                        window.location.href = "/";
-                 }, 1000);
-              } else if (authResult['error']) {
-            console.log('There was an error: ' + authResult['error']);
-            } else {
-                $('#result').html('Failed to make a server-side call. Check your configuration and console.');
-                 }
-              }
-            });
-            }}
-
-            $('#github-button').on('click', function() {
-            // Initialize with your OAuth.io app public key
-            OAuth.initialize('HwAr2OtSxRgEEnO2-JnYjsuA3tc');
-          // Use popup for oauth
-          // Alternative is redirect
-          OAuth.popup('github').then(github => {
-            console.log('github:', github);
-            // Retrieves user data from oauth provider
-            // Prompts 'welcome' message with User's email on successful login
-            // #me() is a convenient method to retrieve user data without requiring you
-            // to know which OAuth provider url to call
-            github.me().then(data => {
-              console.log('me data:', data);
-              alert('GitHub says your email is:' + data.email + ".\nView browser 'Console Log' for more details");
-              });
-            // Retrieves user data from OAuth provider by using #get() and
-            // OAuth provider url
-            github.get('/user').then(data => {
-              console.log('self data:', data);
-            })
-            });
-        })
-     </script>
  </main>
 {% endblock content %}
