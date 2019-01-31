@@ -39,7 +39,6 @@ class LoginForm(FlaskForm):
     password = PasswordField('Password')
     remember = BooleanField('Remember Me')
     submit = SubmitField('Login')
-    google = SubmitField('Google Signin')
 
 
 class UpdateAccountForm(FlaskForm):

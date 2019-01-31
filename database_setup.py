@@ -3,7 +3,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship, sessionmaker
 from sqlalchemy import create_engine
 from flask import Flask
-from flask_login import LoginManager, UserMixin
+from flask_login import LoginManager, UserMixin, AnonymousUserMixin
 from flask_dance.consumer.backend.sqla import OAuthConsumerMixin, SQLAlchemyBackend
 
 
@@ -25,12 +25,14 @@ class User(Base, UserMixin):
     id = Column(Integer, primary_key=True)
     username = Column(String(20), unique=True, nullable=False)
     email = Column(String(120), unique=True, nullable=False)
-    image_file = Column(String(20), nullable=True, default='default.jpg')
+    image_file = Column(String(20), nullable=False, default='default.jpg')
     password = Column(String(60), nullable=True)
 
 
 class OAuth(Base, OAuthConsumerMixin):
     user_id = Column(Integer, ForeignKey('user.id'))
+    provider_user_id = Column(String(256), unique=True)
+    image_file = Column(String(20), nullable=False, default='default.jpg')
     user = relationship(User)
 
 
@@ -91,3 +93,4 @@ class NewDrugs(Base):
 
 engine = create_engine('sqlite:///drugcatalog.db', connect_args={'check_same_thread': False})
 Base.metadata.create_all(engine)
+

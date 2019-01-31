@@ -5,7 +5,16 @@
     <title>Account</title>
     <h2>Welcome!</h2>
 </head>
-<body>
+ <div class="media">
+        <img class="rounded-circle account-img align-self-center mr-3" src="{{ image_file }}">
+            <div class="media-body">
+                <h6 class="account-heading">{{ current_user.username }}</h6>
+                    <p class="text-secondary">{{ current_user.email }}</p>
+            </div>
+    </div>
 
+{% include "flash.html" %}
+
+<body>
 </body>
 </html>

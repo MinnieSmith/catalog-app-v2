@@ -4,12 +4,13 @@ from flask import Flask, render_template, request, redirect, jsonify, url_for, f
 from flask import session as login_session
 from flask_dance.contrib.github import make_github_blueprint, github
 from flask_dance.consumer.backend.sqla import OAuthConsumerMixin, SQLAlchemyBackend
-from flask_dance.consumer import oauth_authorized
+from flask_dance.consumer import oauth_authorized, oauth_error
 from flask_dance.contrib.google import make_google_blueprint, google
-from g_connect import gconnect
+from blinker import Namespace
 
 from sqlalchemy import create_engine, asc
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm.exc import NoResultFound
 from database_setup import Base, DrugClass, Drug, NewDrugs, User, OAuth
 from forms import RegistrationForm, LoginForm, UpdateAccountForm, AddDrugForm, EditDrugForm
 from flask_bcrypt import Bcrypt
@@ -25,6 +26,7 @@ Base.metadata.bind = engine
 DBSession = sessionmaker(bind=engine)
 session = DBSession()
 bcrypt = Bcrypt(app)
+my_signals = Namespace()
 
 
 CLIENT_ID = json.loads(
@@ -42,16 +44,18 @@ blueprint = make_google_blueprint(
 )
 app.register_blueprint(blueprint, url_prefix="/login")
 
-
 login_manager = LoginManager()
 login_manager.init_app(app)
-login_manager.login_view = "login"
+login_manager.login_view = "google.login"
 login_manager.login_message_category = 'info'
 
 
 @login_manager.user_loader
 def load_user(id):
     return session.query(User).get(int(id))
+
+
+blueprint.backend = SQLAlchemyBackend(OAuth, session, user=current_user)
 
 
 @app.route("/")
@@ -169,23 +173,6 @@ def register():
 @app.route("/login", methods=['GET', 'POST'])
 def login():
     form = LoginForm()
-    # if not google.authorized:
-    #     return redirect(url_for("google.login"))
-    # resp = google.get("/oauth2/v2/userinfo")
-    # email = resp.json()['email']
-    # assert resp.ok, resp.text
-    # if resp.ok:
-    #     email = resp.json()["email"]
-    #     user = session.query(User).filter_by(email=email).first()
-    #     if user is None:
-    #         googleuser = User(username=email, email=email)
-    #         session.add(googleuser)
-    #         session.commit()
-    #         print("FIRST PRINT DEBUG")
-    #         login_user(googleuser, remember=form.remember.data)
-    #         flash('Welcome %s!' % googleuser.username, 'success')
-    #         print("SECOND PRINT DEBUG")
-    #         return redirect(url_for('account'))
     if form.validate_on_submit():
         user = session.query(User).filter_by(email=form.email.data).first()
         if user and bcrypt.check_password_hash(user.password, form.password.data):
@@ -198,6 +185,45 @@ def login():
             flash('Login Unsuccessful. Please check email and password', 'danger')
             print("FOURTH PRINT DEBUG")
     return render_template('login.html', title='Login', form=form)
+
+
+@oauth_authorized.connect_via(blueprint)
+def google_logged_in(blueprint, token):
+    if not token:
+        flash("failed to log in with Google.", "error")
+        return False
+
+    resp = blueprint.session.get("/user")
+    if not resp.ok:
+        flash("failed to fetch user info from Google.", "error")
+        return False
+
+    google_info = resp.json()
+    google_id = str(google_info["id"])
+    image_file = "https://www.google.com/s2/photos/profile/{google_id}"
+
+    try:
+        oauth = session.query(OAuth).filter_by(provider=blueprint.name, provider_user_id=google_id)
+    except NoResultFound:
+        oauth = OAuth(provider=blueprint.name, provider_user_id=google_id, token=token, image_file=image_file)
+    if oauth.user:
+        login_user(oauth.user)
+        flash("Successfully signed in with Google", "success")
+    return False
+
+
+@oauth_error.connect_via(blueprint)
+def google_error(blueprint, error, error_description=None, error_uri=None):
+    msg = (
+        "OAuth error from {name}! "
+        "error={error} description={description} uri={uri}"
+    ).format(
+        name=blueprint.name,
+        error=error,
+        description=error_description,
+        uri=error_uri,
+    )
+    flash(msg, category="error")
 
 
 @app.route("/logout", methods=['GET', 'POST'])
